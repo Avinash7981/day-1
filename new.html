@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HydraBot — Prototype Dashboard</title>
+    <style>
+         :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --muted: #9aa4b2;
+            --accent: #22c1c3;
+            --accent-2: #6ee7b7;
+            --danger: #ff7b7b;
+            --glass: rgba(255, 255, 255, 0.04);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg, #071022 0%, #081427 60%);
+            color: #e6eef6
+        }
+        
+        .app {
+            max-width: 1100px;
+            margin: 28px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: linear-gradient(180deg, var(--card), #06101A);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        
+        h1 {
+            font-size: 18px;
+            margin: 0 0 6px
+        }
+        
+        p.muted {
+            color: var(--muted);
+            margin: 0 0 12px
+        }
+        
+        .health-wrap {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .hp {
+            flex: 1
+        }
+        
+        .hp-bar {
+            height: 18px;
+            width: 100%;
+            background: var(--glass);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            width: 0%;
+            transform-origin: left;
+            transition: width .6s ease;
+        }
+        
+        .hp-meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px
+        }
+        
+        .big-num {
+            font-weight: 700;
+            font-size: 36px;
+            color: var(--accent-2);
+            text-align: center;
+            margin: 12px 0
+        }
+        
+        .btn {
+            background: linear-gradient(180deg, #0ea5a4, #089f9d);
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #062026;
+            border: none;
+            cursor: pointer;
+            font-weight: 600
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--accent);
+            padding: 8px;
+            border-radius: 8px
+        }
+        
+        .muted-small {
+            font-size: 12px;
+            color: var(--muted)
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+        
+        .tile {
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+            border: 1px solid rgba(255, 255, 255, 0.02)
+        }
+        
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+        
+        input[type=number],
+        input[type=text],
+        select {
+            background: #071826;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: #dff6f5;
+            padding: 8px;
+            border-radius: 8px
+        }
+        
+        footer {
+            margin-top: 20px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+        
+        .log-list {
+            max-height: 160px;
+            overflow: auto;
+            margin-top: 8px;
+            font-size: 13px
+        }
+        
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.02)
+        }
+        
+        .small {
+            font-size: 13px
+        }
+        
+        .chart {
+            height: 90px;
+            margin-top: 12px
+        }
+        
+        .leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px
+        }
+        
+        .leaderboard td,
+        .leaderboard th {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-size: 13px
+        }
+        
+        .chip {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px
+        }
+        
+        .tog {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+        
+        .switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            position: relative;
+            cursor: pointer
+        }
+        
+        .knob {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 999px;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: left .18s ease, background .18s
+        }
+        
+        .switch.on {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2))
+        }
+        
+        .switch.on .knob {
+            left: 23px;
+            background: #062028
+        }
+        
+        .small-note {
+            color: var(--muted);
+            font-size: 12px
+        }
+        
+        .danger {
+            background: linear-gradient(180deg, #ff9b9b, #ff7474);
+            color: #2b0606
+        }
+        
+        .mock-btn {
+            background: linear-gradient(180deg, #243b59, #102033);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            color: #bfeffd
+        }
+        
+        .code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 12px
+        }
+        
+        @media (max-width:980px) {
+            .app {
+                grid-template-columns: 1fr;
+                padding: 12px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Left column: Health + Controls -->
+        <div class="card">
+            <h1>HydraBot — Health HUD (Prototype)</h1>
+            <p class="muted">A live demo of the "Health Bar", quick logs, and smart scheduling mockups. This is front-end only.</p>
+
+            <div class="tile">
+                <div class="health-wrap">
+                    <div class="hp">
+                        <div class="hp-bar" aria-hidden="true">
+                            <div id="hpFill" class="hp-fill" style="width:0%"></div>
+                        </div>
+                        <div class="hp-meta">Daily goal: <span id="goalLabel">2000</span> ml • Remaining: <span id="remainingLabel">2000</span> ml</div>
+                    </div>
+                    <div style="width:86px;text-align:center">
+                        <div class="chip">HP</div>
+                        <div id="hpPercent" style="font-weight:700;margin-top:8px;">0%</div>
+                    </div>
+                </div>
+
+                <div class="big-num" id="bigMl">0 ml</div>
+
+                <div class="controls">
+                    <button class="btn" id="drink250">/drink 250ml</button>
+                    <button class="btn" id="sip50">/sip</button>
+                    <button class="btn btn-ghost" id="undo">Undo</button>
+                </div>
+
+                <div style="margin-top:12px" class="small-note">Quick commands — try `/drink 250` or `/sip` to simulate a slash-style experience. Data stored in browser localStorage.</div>
+            </div>
+
+            <div style="margin-top:12px" class="tile">
+                <div class="row" style="justify-content:space-between; align-items:center">
+                    <div>
+                        <div style="font-weight:700">Smart Scheduling</div>
+                        <div class="muted-small">Let HydraBot avoid pinging during focus sessions.</div>
+                    </div>
+                    <div class="tog">
+                        <div id="smartSwitch" class="switch">
+                            <div class="knob"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px" class="grid-2">
+                    <div>
+                        <div class="small-note">Focus Mode (Pomodoro)</div>
+                        <div style="display:flex; gap:6px; margin-top:8px">
+                            <input id="pomMinutes" type="number" min="10" step="5" value="50" style="width:84px" /> <button class="mock-btn" id="startFocus">Start Focus</button>
+                        </div>
+                        <div id="focusStatus" class="small-note" style="margin-top:8px">Idle</div>
+                    </div>
+                    <div>
+                        <div class="small-note">Active hours</div>
+                        <div style="margin-top:8px">
+                            <input id="activeFrom" type="text" value="09:00" style="width:84px" /> → <input id="activeTo" type="text" value="22:00" style="width:84px" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px" class="tile">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <div style="font-weight:700">Gamer Tools</div>
+                        <div class="muted-small">Presence triggers, AFK for Hydro and match-end pings (simulated)</div>
+                    </div>
+                    <div>
+                        <label class="small-note">AFK auto-status</label><br/>
+                        <div class="tog" style="margin-top:6px">
+                            <div id="afkSwitch" class="switch">
+                                <div class="knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+                    <select id="presenceSim">
+            <option value="online">Online</option>
+            <option value="playing-lol">Playing: League of Legends</option>
+            <option value="streaming">Streaming</option>
+            <option value="offline">Offline</option>
+          </select>
+                    <button class="mock-btn" id="simulatePresence">Simulate</button>
+                    <div id="presenceNote" class="small-note" style="margin-left:8px">Current: <span id="presenceLabel">online</span></div>
+                </div>
+
+                <div id="matchHint" class="small-note" style="margin-top:8px">Match-end messages will appear in the "Activity" feed.</div>
+            </div>
+
+            <footer>Prototype • Local-only demo — perfect to wire to a backend and bots</footer>
+        </div>
+
+        <!-- Right column: Activity, Stats, Leaderboard -->
+        <div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <h1 style="font-size:16px">Activity Feed</h1>
+                        <p class="muted">Reminders, match triggers, and logs.</p>
+                    </div>
+                    <div class="small muted-small">User: <span id="userLabel">You</span></div>
+                </div>
+
+                <div id="activity" style="margin-top:8px; max-height:160px; overflow:auto; padding-right:6px"></div>
+
+                <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+                    <button class="btn" id="dailySummary">Daily Summary</button>
+                    <button class="btn btn-ghost" id="exportData">Export JSON</button>
+                    <button class="btn btn-ghost" id="clearData">Reset</button>
+                </div>
+            </div>
+
+            <div style="margin-top:12px" class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <h1 style="font-size:16px">Hydration Stats</h1>
+                        <p class="muted">Streaks, level, and weekly chart.</p>
+                    </div>
+                    <div class="chip" id="levelChip">Level 1</div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:12px; align-items:center">
+                    <div style="flex:1">
+                        <div class="small-note">Streak</div>
+                        <div style="font-weight:700; font-size:18px" id="streak">0 days</div>
+                    </div>
+                    <div style="width:160px; text-align:center">
+                        <div class="small-note">XP</div>
+                        <div style="font-weight:800; font-size:18px" id="xp">0 / 100</div>
+                    </div>
+                </div>
+
+                <div class="chart" id="weekChart" aria-hidden="true"></div>
+
+                <div style="margin-top:10px" class="small-note">Tip: tie hydration to commits or match-ends for automated XP gains.</div>
+            </div>
+
+            <div style="margin-top:12px" class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <h1 style="font-size:16px">Leaderboard (Local)</h1>
+                    <div class="small-note">Weekly</div>
+                </div>
+
+                <table class="leaderboard" id="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>ml</th>
+                            <th>Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+                    <input id="fakeName" type="text" placeholder="Name" />
+                    <input id="fakeMl" type="number" placeholder="ml" style="width:84px" />
+                    <button class="mock-btn" id="addLeader">Add</button>
+                </div>
+            </div>
+
+            <div style="margin-top:12px" class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <h1 style="font-size:16px">Logs</h1>
+                        <p class="muted-small">Recent water entries</p>
+                    </div>
+                    <div class="small-note">Total: <span id="logTotal">0</span> entries</div>
+                </div>
+
+                <div class="log-list" id="logList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+                  HydraBot Dashboard (Prototype)
+                  - Stores state in localStorage under key "hydraData"
+                  - Functions:
+                    - log(amount) -> adds an entry (timestamp, amount, source)
+                    - updateUI() -> refreshes HP bar, logs, chart, streaks, leaderboard
+                    - simulatePresenceChange() -> triggers match-end or presence events (demo)
+                  - Notes: Replace calls to "addActivity" and "rewardXP" with webhooks to backend or direct bot API calls.
+                */
+
+        const STORAGE_KEY = 'hydraData_v1';
+
+        // Defaults
+        const defaultState = {
+            dailyGoal: 2000,
+            logs: [], // {ts, ml, source}
+            lastFocusEnd: null,
+            smartScheduling: true,
+            afkMode: false,
+            presence: 'online',
+            xp: 0,
+            level: 1,
+            streakDays: 0,
+            leaderboard: [{
+                name: 'You',
+                ml: 0
+            }, {
+                name: 'Alex',
+                ml: 1400
+            }, {
+                name: 'Mira',
+                ml: 980
+            }]
+        };
+
+        let state = load();
+
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultState));
+                    return structuredClone(defaultState);
+                }
+                return {...defaultState,
+                    ...JSON.parse(raw)
+                };
+            } catch (e) {
+                console.error('load err', e);
+                return structuredClone(defaultState);
+            }
+        }
+
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        // Utilities
+        function nowTs() {
+            return new Date().toISOString();
+        }
+
+        function addActivity(text) {
+            const el = document.createElement('div');
+            el.style.padding = '8px 0';
+            el.style.borderBottom = '1px dashed rgba(255,255,255,0.02)';
+            el.innerHTML = `<div style="font-size:13px">${text}</div><div style="font-size:11px;color:var(--muted)">${new Date().toLocaleTimeString()}</div>`;
+            const feed = document.getElementById('activity');
+            feed.prepend(el);
+        }
+
+        function log(amount, source = 'manual') {
+            const ts = nowTs();
+            state.logs.push({
+                ts,
+                ml: amount,
+                source
+            });
+            // also update leaderboard local "You"
+            const you = state.leaderboard.find(l => l.name === 'You');
+            if (you) {
+                you.ml += amount
+            } else {
+                state.leaderboard.unshift({
+                    name: 'You',
+                    ml: amount
+                });
+            }
+            // XP reward: small function (10 XP per 250ml)
+            const xpGain = Math.floor((amount / 250) * 10);
+            rewardXP(xpGain);
+            addActivity(`Logged ${amount} ml (${source})`);
+            save();
+            updateUI();
+        }
+
+        // Undo last log
+        function undo() {
+            const last = state.logs.pop();
+            if (last) {
+                // remove from your leaderboard
+                const you = state.leaderboard.find(l => l.name === 'You');
+                if (you) {
+                    you.ml = Math.max(0, you.ml - last.ml);
+                }
+                addActivity(`Undid ${last.ml} ml`);
+                save();
+                updateUI();
+            }
+        }
+
+        function rewardXP(xp) {
+            state.xp += xp;
+            while (state.xp >= 100) {
+                state.xp -= 100;
+                state.level += 1;
+                addActivity(`Level up! Now level ${state.level} 🎉`);
+            }
+            save();
+        }
+
+        // HP / Health calculations for the day
+        function calcTodayTotal() {
+            const start = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const total = state.logs.filter(l => l.ts.startsWith(start)).reduce((s, l) => s + l.ml, 0);
+            return total;
+        }
+
+        // Week array (last 7 days) for chart
+        function buildWeekData() {
+            const days = []; // {label, total}
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().slice(0, 10);
+                const total = state.logs.filter(l => l.ts.startsWith(key)).reduce((s, l) => s + l.ml, 0);
+                days.push({
+                    label: d.toLocaleDateString(undefined, {
+                        weekday: 'short'
+                    }),
+                    total
+                });
+            }
+            return days;
+        }
+
+        // Presence simulation: if presence changes from playing -> online, simulate match-end ping
+        function simulatePresence(p) {
+            const prev = state.presence;
+            state.presence = p;
+            save();
+            document.getElementById('presenceLabel').textContent = p;
+            addActivity(`Presence changed: ${p}`);
+            // if previously playing and now online, match ended
+            if (prev && prev.startsWith('playing') && p === 'online') {
+                // match-end trigger
+                addActivity('Match ended. Lobby Break: Refill your mana (water) 🎮');
+                // optional: auto-reward small xp for hydration if user logs within 5 minutes (not implemented)
+            }
+            // if AFK mode is on and user is offline/away, set AFK status (simulated)
+            if (state.afkMode && p === 'offline') {
+                addActivity('AFK for Hydro: status set to 🥤 AFK: Hydrating (simulated)');
+            }
+        }
+
+        // Chart render (simple SVG bars)
+        function renderChart() {
+            const days = buildWeekData();
+            const max = Math.max(...days.map(d => d.total), state.dailyGoal);
+            const w = 600,
+                h = 90,
+                pad = 10;
+            let svg = `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">`;
+            const barW = (w - 2 * pad) / days.length;
+            days.forEach((d, i) => {
+                const x = pad + i * barW;
+                const barH = (d.total / max) * (h - 30);
+                const y = h - 20 - barH;
+                const color = d.total >= state.dailyGoal ? 'var(--accent-2)' : 'rgba(34,193,195,0.9)';
+                svg += `<rect x="${x+8}" y="${y}" width="${barW-16}" height="${barH}" rx="6" fill="${color}" />`;
+                svg += `<text x="${x + barW/2}" y="${h - 4}" font-size="10" text-anchor="middle" fill="var(--muted)">${d.label}</text>`;
+            });
+            svg += `</svg>`;
+            document.getElementById('weekChart').innerHTML = svg;
+        }
+
+        // Leaderboard render
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard').querySelector('tbody');
+            tbody.innerHTML = '';
+            const sorted = [...state.leaderboard].sort((a, b) => b.ml - a.ml).slice(0, 10);
+            sorted.forEach((p, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${p.name}</td><td>${p.ml}</td><td>${idx+1}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Log list render
+        function renderLogs() {
+            const list = document.getElementById('logList');
+            list.innerHTML = '';
+            const recent = [...state.logs].reverse().slice(0, 40);
+            recent.forEach(l => {
+                const d = new Date(l.ts).toLocaleString();
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `<div>${l.ml} ml <span style="color:var(--muted); font-size:12px">· ${l.source}</span></div><div class="muted-small">${d}</div>`;
+                list.appendChild(div);
+            });
+            document.getElementById('logTotal').textContent = state.logs.length;
+        }
+
+        // HP fill UI update
+        function updateHP() {
+            const total = calcTodayTotal();
+            const goal = state.dailyGoal;
+            const percent = Math.min(100, Math.round((total / goal) * 100));
+            document.getElementById('hpFill').style.width = percent + '%';
+            document.getElementById('hpPercent').textContent = percent + '%';
+            document.getElementById('bigMl').textContent = total + ' ml';
+            document.getElementById('goalLabel').textContent = goal;
+            document.getElementById('remainingLabel').textContent = Math.max(0, goal - total);
+        }
+
+        // Streak calculation (very naive): a day counts if at least 500ml logged
+        function updateStreak() {
+            let streak = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().slice(0, 10);
+                const total = state.logs.filter(l => l.ts.startsWith(key)).reduce((s, l) => s + l.ml, 0);
+                if (total >= 500) streak++;
+                else break;
+            }
+            state.streakDays = streak;
+            document.getElementById('streak').textContent = streak + ' days';
+            document.getElementById('xp').textContent = state.xp + ' / 100';
+            document.getElementById('levelChip').textContent = 'Level ' + state.level;
+        }
+
+        // Render entire UI
+        function updateUI() {
+            updateHP();
+            renderChart();
+            renderLeaderboard();
+            renderLogs();
+            updateStreak();
+            // small header
+            document.getElementById('userLabel').textContent = 'You';
+        }
+
+        // DOM wiring
+        document.getElementById('drink250').addEventListener('click', () => log(250, '/drink 250'));
+        document.getElementById('sip50').addEventListener('click', () => log(50, '/sip'));
+        document.getElementById('undo').addEventListener('click', undo);
+
+        document.getElementById('smartSwitch').addEventListener('click', (e) => {
+            state.smartScheduling = !state.smartScheduling;
+            e.currentTarget.classList.toggle('on', state.smartScheduling);
+            if (state.smartScheduling) addActivity('Smart Scheduling enabled');
+            else addActivity('Smart Scheduling disabled');
+            save();
+            updateUI();
+        });
+        if (state.smartScheduling) document.getElementById('smartSwitch').classList.add('on');
+
+        document.getElementById('afkSwitch').addEventListener('click', (e) => {
+            state.afkMode = !state.afkMode;
+            e.currentTarget.classList.toggle('on', state.afkMode);
+            addActivity(state.afkMode ? 'AFK for Hydro enabled' : 'AFK for Hydro disabled');
+            save();
+            updateUI();
+        });
+        if (state.afkMode) document.getElementById('afkSwitch').classList.add('on');
+
+        document.getElementById('simulatePresence').addEventListener('click', () => {
+            const v = document.getElementById('presenceSim').value;
+            simulatePresence(v);
+        });
+
+        // Start focus/pomodoro (mock)
+        let focusTimer = null;
+        document.getElementById('startFocus').addEventListener('click', () => {
+            const mins = Math.max(5, Number(document.getElementById('pomMinutes').value || 50));
+            document.getElementById('focusStatus').textContent = `Focus for ${mins} min — silencing pings`;
+            addActivity(`Focus Mode started for ${mins} minutes (Pomodoro)`);
+            if (focusTimer) clearTimeout(focusTimer);
+            focusTimer = setTimeout(() => {
+                document.getElementById('focusStatus').textContent = 'Idle';
+                addActivity('Focus ended. Hydration Standup: Time to drink water! 🚰');
+                focusTimer = null;
+            }, mins * 60 * 1000);
+        });
+
+        // Daily summary
+        document.getElementById('dailySummary').addEventListener('click', () => {
+            const total = calcTodayTotal();
+            addActivity(`Daily Summary: ${total} ml. Goal: ${state.dailyGoal} ml`);
+            alert(`Daily Summary\n\n${total} ml of ${state.dailyGoal} ml`);
+        });
+
+        // Export JSON
+        document.getElementById('exportData').addEventListener('click', () => {
+            const blob = new Blob([JSON.stringify(state, null, 2)], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hydra-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Reset
+        document.getElementById('clearData').addEventListener('click', () => {
+            if (confirm('Reset local prototype data?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                state = load();
+                addActivity('Data cleared');
+                updateUI();
+            }
+        });
+
+        // Leaderboard fake add
+        document.getElementById('addLeader').addEventListener('click', () => {
+            const name = document.getElementById('fakeName').value.trim() || 'Friend';
+            const ml = Number(document.getElementById('fakeMl').value) || 0;
+            state.leaderboard.push({
+                name,
+                ml
+            });
+            addActivity(`Added ${name} (${ml} ml) to leaderboard (simulated)`);
+            save();
+            updateUI();
+        });
+
+        // Initialize
+        (function init() {
+            // show existing logs as activities
+            state.logs.slice(-6).forEach(l => addActivity(`Past: ${l.ml} ml (${new Date(l.ts).toLocaleString()})`));
+            updateUI();
+        })();
+    </script>
+</body>
+
+</html>
